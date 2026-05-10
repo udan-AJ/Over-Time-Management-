@@ -51,12 +51,9 @@
                     
                 reader.onload = async (event) => {    
                     const data = new Uint8Array(event.target.result);    
-                    // cellDates: true සහ dateNF වැදගත් වෙනවා හරියටම වෙලාව ගන්න    
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'HH:mm' });    
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: false });    
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];    
                         
-                    // Header එක තියෙන්නේ Row 12 (Index 11).     
-                    // range: "A12:Z500" වගේ දුන්නම 12 පේළියේ headers අරගෙන 13 පේළියේ ඉඳන් දත්ත ටික ගන්නවා.    
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { range: 11, defval: "" });     
                         
                     if(jsonData.length === 0) return alert("Excel ගොනුවේ දත්ත හමු වුනේ නැත!");    
@@ -95,9 +92,14 @@
                             }    
     
                             if (day && day >= 1 && day <= 31) {    
+                                let formattedInTime = formatTime(inTime);    
+                                let formattedOutTime = formatTime(outTime);    
+                                
+                                console.log(`Day ${day}: IN="${inTime}" -> "${formattedInTime}", OUT="${outTime}" -> "${formattedOutTime}"`);    
+                                
                                 currentData[String(day)] = {     
-                                    in: formatTime(inTime),     
-                                    out: formatTime(outTime)     
+                                    in: formattedInTime,     
+                                    out: formattedOutTime     
                                 };    
                                 successCount++;    
                             }    
@@ -132,31 +134,37 @@
             renderSheet();    
         };    
     
-        // Fixed formatTime function - precision-safe conversion for all time formats    
+        // Fixed formatTime - handles all input types correctly    
         function formatTime(val) {    
-            if (!val || val === "00:00" || val === "0:00") return "00:00";    
+            if (!val || val === "00:00" || val === "0:00" || val === "") return "00:00";    
                 
             let h = 0, m = 0;    
     
-            if (val instanceof Date) {    
-                // Extract hours and minutes directly without rounding    
+            // Handle string times (most common from Excel)    
+            if (typeof val === 'string') {    
+                val = val.trim();    
+                // Check if it's already in HH:MM format    
+                if (val.includes(':')) {    
+                    let parts = val.split(':');    
+                    h = parseInt(parts[0]) || 0;    
+                    m = parseInt(parts[1]) || 0;    
+                } else {    
+                    // Try to parse as number string    
+                    let numVal = parseFloat(val);    
+                    if (!isNaN(numVal)) {    
+                        let totalMinutes = Math.round(numVal * 1440);    
+                        h = Math.floor(totalMinutes / 60);    
+                        m = totalMinutes % 60;    
+                    }    
+                }    
+            } else if (val instanceof Date) {    
                 h = val.getHours();    
                 m = val.getMinutes();    
             } else if (typeof val === 'number') {    
-                // Excel numbers: use floor to avoid floating-point rounding errors    
-                // 0.3201388... * 1440 = 461 minutes (exactly)    
-                let totalMinutes = Math.floor(val * 1440 + 0.5);    
+                // Excel decimal number format    
+                let totalMinutes = Math.round(val * 1440);    
                 h = Math.floor(totalMinutes / 60);    
                 m = totalMinutes % 60;    
-            } else {    
-                // String format "HH:MM"    
-                let parts = String(val).trim().split(':');    
-                if (parts.length >= 2) {    
-                    h = parseInt(parts[0]);    
-                    m = parseInt(parts[1]);    
-                } else {    
-                    return "00:00";    
-                }    
             }    
                 
             h = h % 24;    
