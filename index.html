@@ -262,28 +262,10 @@
             document.getElementById('tabSheet').className = tab === 'sheet' ? 'flex-1 py-4 text-blue-600 border-b-4 border-blue-600 font-black text-xs uppercase' : 'flex-1 py-4 text-slate-400 font-bold text-xs uppercase';    
             document.getElementById('tabHolidays').className = tab === 'holidays' ? 'flex-1 py-4 text-blue-600 border-b-4 border-blue-600 font-black text-xs uppercase' : 'flex-1 py-4 text-slate-400 font-bold text-xs uppercase';    
         };    
-
-        // --- CLEAR MONTH DATA ---
-        window.clearMonthData = async () => {
-            const year = document.getElementById('yearSelect').value;
-            const month = parseInt(document.getElementById('monthSelect').value) + 1;
-            const monthLabel = document.getElementById('monthSelect').options[document.getElementById('monthSelect').selectedIndex].text;
-            if (!confirm(`Clear all data for ${monthLabel} ${year}? This cannot be undone.`)) return;
-            const user = auth.currentUser;
-            const monthId = `${year}-${month}`;
-            await deleteDoc(doc(db, "users", user.uid, "months", monthId));
-            renderSheet();
-        };
-
+    
         window.handleLogin = () => signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('pass').value).catch(err => alert("Login Failed: " + err.message));    
         window.logout = () => signOut(auth);    
-        window.renderSheet = renderSheet;
-
-        // Bind all buttons via addEventListener so module scope is always available
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('tabSheet').addEventListener('click', () => switchTab('sheet'));
-            document.getElementById('tabHolidays').addEventListener('click', () => switchTab('holidays'));
-        });
+        window.renderSheet = renderSheet;    
     
     </script>    
 </head>    
@@ -302,8 +284,8 @@
     
     <div id="appScreen" class="hidden max-w-lg mx-auto">    
         <div class="bg-white flex text-center border-b border-slate-200 sticky top-0 z-20">    
-            <button id="tabSheet" class="flex-1 py-4 text-blue-600 border-b-4 border-blue-600 font-black text-xs uppercase">Daily Sheet</button>    
-            <button id="tabHolidays" class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase">Holidays</button>    
+            <button id="tabSheet" onclick="switchTab('sheet')" class="flex-1 py-4 text-blue-600 border-b-4 border-blue-600 font-black text-xs uppercase">Daily Sheet</button>    
+            <button id="tabHolidays" onclick="switchTab('holidays')" class="flex-1 py-4 text-slate-400 font-bold text-xs uppercase">Holidays</button>    
         </div>    
     
         <div id="sheetView" class="p-4">    
@@ -326,9 +308,29 @@
                     </div>    
                     <div class="flex flex-col gap-2">    
                         <button onclick="importExcel()" class="bg-white text-blue-600 text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">IMPORT EXCEL</button>    
-                        <button onclick="clearMonthData()" class="bg-red-500 text-white text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">CLEAR DATA</button>    
                         <button onclick="logout()" class="bg-white/20 text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">LOGOUT</button>    
                     </div>    
                 </div>    
             </div>    
-            <div id="sheetContainer" class="bg-white rounded-[2rem] shadow-sm borde
+            <div id="sheetContainer" class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden"></div>    
+        </div>    
+    
+        <div id="holidayView" class="hidden p-6">    
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 mb-6">    
+                <h3 class="font-black mb-4">Add Holiday</h3>    
+                <input type="date" id="holidayInput" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl mb-4 outline-none">    
+                <button onclick="addHoliday()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition">ADD TO LIST</button>    
+            </div>    
+            <div id="holidayList"></div>    
+        </div>    
+    
+        <div class="py-12 text-center">    
+            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest leading-loose">    
+                © All rights reserved.<br>    
+                Developed by Udan A. Jayawardene<br>    
+                <span class="text-blue-500">UDAN JAY™ DIGITAL SOLUTION</span>    
+            </p>    
+        </div>    
+    </div>    
+</body>    
+</html>  
