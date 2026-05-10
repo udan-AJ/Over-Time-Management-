@@ -117,6 +117,21 @@
             fileInput.click();    
         };    
     
+        // --- CLEAR MONTH DATA ---    
+        window.clearMonthData = async () => {    
+            if (!confirm("ඔබ සිතින්ද මේ මාසයේ සියලු දත්ත මකා දැමීමට? (මෙය ආපසු හැරිය නොහැක)")) {    
+                return;    
+            }    
+            const user = auth.currentUser;    
+            const selectedYear = document.getElementById('yearSelect').value;    
+            const selectedMonth = parseInt(document.getElementById('monthSelect').value) + 1;    
+            const monthId = `${selectedYear}-${selectedMonth}`;    
+            const docRef = doc(db, "users", user.uid, "months", monthId);    
+            await deleteDoc(docRef);    
+            alert("මාසයේ දත්ත සාර්ථකයි මකා දැමුණා!");    
+            renderSheet();    
+        };    
+    
         // විනාඩියක් අඩුවෙන් එන ප්‍රශ්නයට විසඳුම මෙතන තියෙනවා (Math.round භාවිතා කර ඇත)    
         function formatTime(val) {    
             if (!val || val === "00:00" || val === "0:00") return "00:00";    
@@ -308,6 +323,7 @@
                     </div>    
                     <div class="flex flex-col gap-2">    
                         <button onclick="importExcel()" class="bg-white text-blue-600 text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">IMPORT EXCEL</button>    
+                        <button onclick="clearMonthData()" class="bg-red-500 text-white text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">CLEAR DATA</button>    
                         <button onclick="logout()" class="bg-white/20 text-[10px] px-4 py-2 rounded-xl font-black active:scale-95 transition">LOGOUT</button>    
                     </div>    
                 </div>    
@@ -333,4 +349,4 @@
         </div>    
     </div>    
 </body>    
-</html>  
+</html>
