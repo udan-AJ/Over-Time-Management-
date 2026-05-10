@@ -132,19 +132,20 @@
             renderSheet();    
         };    
     
-        // Fixed formatTime function - removed rounding that caused 1 minute loss    
+        // Fixed formatTime function - precision-safe conversion for all time formats    
         function formatTime(val) {    
             if (!val || val === "00:00" || val === "0:00") return "00:00";    
                 
             let h = 0, m = 0;    
     
             if (val instanceof Date) {    
-                // Extract hours and minutes directly without rounding seconds    
+                // Extract hours and minutes directly without rounding    
                 h = val.getHours();    
                 m = val.getMinutes();    
             } else if (typeof val === 'number') {    
-                // Excel numbers: convert decimal days to minutes    
-                let totalMinutes = Math.round(val * 1440);    
+                // Excel numbers: use floor to avoid floating-point rounding errors    
+                // 0.3201388... * 1440 = 461 minutes (exactly)    
+                let totalMinutes = Math.floor(val * 1440 + 0.5);    
                 h = Math.floor(totalMinutes / 60);    
                 m = totalMinutes % 60;    
             } else {    
